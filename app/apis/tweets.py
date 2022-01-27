@@ -1,5 +1,5 @@
 from flask_restx import Namespace, Resource, fields
-from app.db import tweet_repository
+from app import db
 from app.models import Tweet
 
 api = Namespace('tweets')  # Base route
@@ -20,7 +20,7 @@ json_new_tweet = api.model('New tweet', {
 class TweetResource(Resource):
     @api.marshal_with(json_tweet)  # Used to control JSON response format
     def get(self, tweet_id):  # GET method
-        tweet = tweet_repository.get(tweet_id)
+        tweet = db.session.query(Tweet).get(tweet_id)
         if tweet is None:
             api.abort(404)  # abort will throw an exception and break execution flow (equivalent to 'return' keyword for an error)
         return tweet, 200
@@ -28,7 +28,7 @@ class TweetResource(Resource):
     @api.marshal_with(json_tweet, code=200)
     @api.expect(json_new_tweet, validate=True)  # Used to control JSON body format (and validate)
     def patch(self, tweet_id):  # PATCH method
-        tweet = tweet_repository.get(tweet_id)
+        tweet = db.session.query(Tweet).get(tweet_id)
         if tweet is None:
             api.abort(404)
 
@@ -39,7 +39,7 @@ class TweetResource(Resource):
         return None, 204
 
     def delete(self, tweet_id):  # DELETE method
-        tweet = tweet_repository.get(tweet_id)
+        tweet = db.session.query(Tweet).get(tweet_id)
         if tweet is None:
             api.abort(404)
         tweet_repository.remove(tweet_id)
